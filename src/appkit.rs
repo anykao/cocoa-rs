@@ -2283,8 +2283,8 @@ pub trait NSEvent {
     unsafe fn isSwipeTrackingFromScrollEventsEnabled(_: Self) -> BOOL;
 
     // Monitoring Application Events
-    // TODO: addGlobalMonitorForEventsMatchingMask_handler_ (unsure how to bind to blocks)
-    // TODO: addLocalMonitorForEventsMatchingMask_handler_ (unsure how to bind to blocks)
+    unsafe fn addGlobalMonitorForEventsMatchingMask_handler_ (_: Self, mask: NSEventMask, block:*const Block<(id,), ()>);
+    unsafe fn addLocalMonitorForEventsMatchingMask_handler_ (_: Self, mask: NSEventMask, block:*const Block<(id,), id>);
     unsafe fn removeMonitor_(_: Self, eventMonitor: id);
 
     // Scroll Wheel and Flick Events
@@ -2293,7 +2293,12 @@ pub trait NSEvent {
     unsafe fn scrollingDeltaY(self) -> CGFloat;
     unsafe fn momentumPhase(self) -> NSEventPhase;
     unsafe fn phase(self) -> NSEventPhase;
-    // TODO: trackSwipeEventWithOptions_dampenAmountThresholdMin_max_usingHandler_ (unsure how to bind to blocks)
+    unsafe fn trackSwipeEventWithOptions_dampenAmountThresholdMin_max_usingHandler_ (
+        self,
+        options: NSEventSwipeTrackingOptions,
+        minDampenThreshold: CGFloat,
+        maxDampenThreshold: CGFloat,
+        trackingHandler:*const Block<(CGFloat, NSEventPhase, BOOL, BOOL), ()>);
 
     // Converting a Mouse Event’s Position into a Sprite Kit Node’s Coordinate Space
     unsafe fn locationInNode_(self, node: id /* (SKNode *) */) -> CGPoint;
@@ -2657,8 +2662,13 @@ impl NSEvent for id {
 
     // Monitoring Application Events
 
-    // TODO: addGlobalMonitorForEventsMatchingMask_handler_ (unsure how to bind to blocks)
-    // TODO: addLocalMonitorForEventsMatchingMask_handler_ (unsure how to bind to blocks)
+    unsafe fn addGlobalMonitorForEventsMatchingMask_handler_ (_: Self, mask: NSEventMask, block: *const Block<(id,), ()>) {
+        msg_send![class("NSEvent"), addGlobalMonitorForEventsMatchingMask:mask handler:block]
+    }
+
+    unsafe fn addLocalMonitorForEventsMatchingMask_handler_ (_: Self, mask: NSEventMask, block: *const Block<(id,), id>) {
+        msg_send![class("NSEvent"), addLocalMonitorForEventsMatchingMask:mask handler:block]
+    }
 
     unsafe fn removeMonitor_(_: Self, eventMonitor: id) {
         msg_send![class("NSEvent"), removeMonitor:eventMonitor]
@@ -2686,7 +2696,14 @@ impl NSEvent for id {
         msg_send![self, phase]
     }
 
-    // TODO: trackSwipeEventWithOptions_dampenAmountThresholdMin_max_usingHandler_ (unsure how to bind to blocks)
+    unsafe fn trackSwipeEventWithOptions_dampenAmountThresholdMin_max_usingHandler_ (
+        self,
+        options: NSEventSwipeTrackingOptions,
+        minDampenThreshold: CGFloat,
+        maxDampenThreshold: CGFloat,
+        trackingHandler:*const Block<(CGFloat, NSEventPhase, BOOL, BOOL), ()>) {
+        msg_send![self, trackSwipeEvent:options dampenAmountThresholdMin:minDampenThreshold max:maxDampenThreshold usingHandler:trackingHandler]
+    }
 
     // Converting a Mouse Event’s Position into a Sprite Kit Node’s Coordinate Space
     unsafe fn locationInNode_(self, node: id /* (SKNode *) */) -> CGPoint {
@@ -3728,3 +3745,52 @@ impl NSColor for id {
         msg_send![class("NSColor"), clearColor]
     }
 }
+
+pub trait NSTableView {
+    unsafe fn new(_: Self) -> id  {
+        msg_send![class("NSTabView"), new]
+    }
+    unsafe fn initWithFrame_(self, frameRect: NSRect) -> id;
+    unsafe fn dataSource(self) -> id;
+    unsafe fn setDataSource_(self, id);
+    unsafe fn delegate(self) -> id;
+    unsafe fn setDelegate_(self, delegate: id);
+    unsafe fn reloadData(self);
+    unsafe fn backgroundColor(self) -> id/* (NSColor *) */;
+    unsafe fn setBackgroundColor_(self, color: id);
+//    unsafe fn doubleAction(self, frameRect: NSRect) -> id;
+}
+
+impl NSTableView for id {
+    unsafe fn initWithFrame_(self, frameRect: NSRect) -> id {
+        msg_send![self, initWithFrame:frameRect]
+    }
+
+    unsafe fn dataSource(self) -> id {
+        msg_send![self, delegate]
+    }
+
+    unsafe fn setDataSource_(self, dataSource: id) {
+        msg_send![self, setDataSource:dataSource]
+    }
+
+    unsafe fn delegate(self) -> id {
+        msg_send![self, delegate]
+    }
+
+    unsafe fn setDelegate_(self, delegate: id) {
+        msg_send![self, setDelegate:delegate]
+    }
+    unsafe fn reloadData(self) {
+        msg_send![self, reloadData]
+    }
+
+    unsafe fn backgroundColor(self) -> id {
+        msg_send![self, backgroundColor]
+    }
+
+    unsafe fn setBackgroundColor_(self, color: id) {
+        msg_send![self, setBackgroundColor:color]
+    }
+}
+
