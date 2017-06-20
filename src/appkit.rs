@@ -337,6 +337,8 @@ pub trait NSApplication {
     unsafe fn sendEvent_(self, an_event: id);
     unsafe fn postEvent_atStart_(self, anEvent: id, flag: BOOL);
     unsafe fn stop_(self, sender: id);
+    unsafe fn hide_(self, sender: id);
+    unsafe fn unhide_(self, sender: id);
     unsafe fn setApplicationIconImage_(self, image: id);
 }
 
@@ -396,6 +398,13 @@ impl NSApplication for id {
         msg_send![self, stop:sender]
     }
 
+    unsafe fn hide_(self, sender:id) {
+        msg_send![self, hide:sender]
+    }
+
+    unsafe fn unhide_(self, sender:id) {
+        msg_send![self, unhide:sender]
+    }
     unsafe fn setApplicationIconImage_(self, icon: id) {
         msg_send![self, setApplicationIconImage:icon]
     }
@@ -3737,10 +3746,18 @@ impl NSLayoutDimension for id {
  }
 
 pub trait NSColor {
+    unsafe fn blackColor(_: Self) -> id;
+    unsafe fn blueColor(_: Self) -> id;
     unsafe fn clearColor(_: Self) -> id;
 }
 
 impl NSColor for id {
+    unsafe fn blackColor(_: Self) -> id {
+        msg_send![class("NSColor"), blackColor]
+    }
+    unsafe fn blueColor(_: Self) -> id {
+        msg_send![class("NSColor"), blueColor]
+    }
     unsafe fn clearColor(_: Self) -> id {
         msg_send![class("NSColor"), clearColor]
     }
@@ -3792,5 +3809,13 @@ impl NSTableView for id {
     unsafe fn setBackgroundColor_(self, color: id) {
         msg_send![self, setBackgroundColor:color]
     }
+}
+
+pub trait NSTableViewDelegate {
+    unsafe fn tableView_viewForTableColumn_row(self, tableView:id, tableColumn:id, row:NSInteger) -> id;
+}
+
+pub trait NSTableViewDataSource {
+    unsafe fn numberOfRowsInTableView(self, tableView:id) -> NSInteger;
 }
 

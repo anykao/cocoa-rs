@@ -2,3 +2,6 @@
 build
 /target
 /Cargo.lock
+
+/.idea
+/pyobjc
