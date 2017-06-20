@@ -5,39 +5,65 @@ extern crate serde_derive;
 #[macro_use]
 extern crate log;
 extern crate log4u;
+extern crate linked_hash_map;
 
 use std::fs;
 use std::io::{self, Write, BufReader};
 use std::io::prelude::*;
 use serde_json::{Value, Error};
-
+use std::collections::HashMap;
 
 #[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
 struct definition {
-  aliases: String,
-  called_definitions: String,
-  cftypes: String,
-  classes: String,
+  aliases: HashMap<String, String>,
+  called_definitions: Value,
+  cftypes: Value, // empty object
+  classes: HashMap<String, klass>,
   #[serde(rename = "enum")]
-  enumeration: String,
-  expressions: String,
-  externs: String,
-  formal_protocols: String,
-  func_macros: String,
-  informal_protocols: String,
-  literals: String,
-  structs: String,
+  enumeration: HashMap<String, Value>,
+  expressions: Value, // empty object
+  externs: HashMap<String, Value>,
+  formal_protocols: HashMap<String, protocol>,
+  func_macros: Value, // empty object
+  functions: HashMap<String, function>,
+  informal_protocols: HashMap<String, protocol>,
+  literals: HashMap<String, Value>,
+  structs: HashMap<String, strct>,
 }
 
+#[derive(Deserialize)]
+struct strct {
+  fieldnames: Vec<Value>,
+  special: bool,
+  typestr: String,
+}
 
+#[derive(Deserialize)]
+struct protocol {
+  implements: Vec<String>,
+  methods: Vec<method>,
+  properties: Value,
+}
+#[derive(Deserialize)]
+struct function {
+  args: Vec<arg>,
+  retval: retval,
+}
+
+#[derive(Deserialize)]
 struct arg {
   typestr: String,
-  typestr_special: String,
+  typestr_special: Option<bool>,
 }
+
+#[derive(Deserialize)]
 struct retval {
   typestr: String,
-  typestr_special: String,
+  typestr_special: Option<bool>,
 }
+
+#[derive(Deserialize)]
 struct method {
   args: Vec<arg>,
   class_method: bool,
@@ -46,18 +72,18 @@ struct method {
   visibility: String,
 }
 
+#[derive(Deserialize)]
 struct klass {
   methods: Vec<method>,
   name:       String,
-  properties: String,
-  protocols:  String,
+  properties: Value,
+  protocols:  Value,
 }
-
 
 #[derive(Deserialize)]
 struct fwinfo {
   arch: String,
-  definitions: Value,
+  definitions: definition,
   framework: String,
   headers: Vec<String>,
   release: String,
@@ -73,15 +99,10 @@ fn main() {
 
   let body: Vec<String> = lines.map(|line|line.unwrap()).collect();
 
-  println!("{}",&body.join("\n"));
 
-//  let v: Value = serde_json::from_str(&body.join("\n")).unwrap();
+  let v: Value = serde_json::from_str(&body.join("\n")).unwrap();
 
-
-//  inspect(v);
-
-
-//  process(v);
+  process(v);
 
 }
 
@@ -103,7 +124,7 @@ fn inspect(v: Value) {
 
 fn process(v: Value) {
   let info: fwinfo = serde_json::from_value(v).unwrap();
-
-  inspect(info.definitions);
-
+  for (k, _ ) in info.definitions.classes {
+    info!("{}",k);
+  }
 }
